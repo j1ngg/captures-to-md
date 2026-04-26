@@ -1,15 +1,27 @@
 # captures-to-md
 
-Feed PDFs, images, and Word / Excel / PowerPoint files into your LLM-native second brain.
+Watch a folder, parse PDFs / images / Word & Excel & PowerPoint files into LLM-readable markdown.
 
-Inspired by Karpathy's "second brain" approach — a markdown wiki organized
-so an LLM can read it like a human — `captures-to-md` adapts the idea to
-handle the formats a plain markdown vault can't ingest on its own: PDFs
-with tables and figures, scanned images, Word / Excel / PowerPoint files.
+Drop a file into the folder. A few minutes later, the parsed markdown
+appears in a `parsed_outputs/` subfolder — figures, tables, and all —
+ready for Claude, Obsidian, or any tool that reads markdown.
 
-Drop a file into your wiki's inbox folder. A few minutes later, the parsed
-markdown appears in a `parsed_outputs/` subfolder — figures, tables, and all —
-ready for Claude, Obsidian, or whatever reads your notes.
+## Why this exists
+
+LLMs read markdown well. They read PDFs, decks, and images poorly:
+each page costs ~2,000+ tokens (rendered as an image) on every query,
+the structure they recover varies between runs, and embedded figures
+have no stable path you can reference from elsewhere.
+
+If you want documents to live alongside your notes and stay cheap to
+query, you want markdown. `captures-to-md` does the conversion once —
+drop a file in the folder, get a parsed `.md` with figures extracted to
+stable filenames in `parsed_outputs/assets/`. From then on, anything
+that reads markdown (Claude Code, `grep`, Obsidian, your own scripts)
+can read your sources directly.
+
+For a one-shot read, just open the PDF — this is overkill. The value
+compounds when you cross-reference many sources over time.
 
 ## Install
 
@@ -36,23 +48,23 @@ API key from your Extend dashboard.
 
 To update later: `pipx upgrade captures-to-md`.
 
-## Ingest a folder
+## Use it
 
 ```bash
-captures-to-md scan /path/to/your/wiki/inbox
+captures-to-md scan /path/to/your/folder
 ```
 
-Replace the path with wherever you drop files — an Obsidian `_RAW` folder,
-a plain `~/Dropbox/inbox`, whatever you use.
+The folder can be anywhere, named anything — an Obsidian `_RAW`, a
+plain `~/Dropbox/inbox`, a project subdirectory, whatever you use.
 
 Supported extensions: `.pdf`, `.png`, `.jpg`, `.jpeg`, `.docx`, `.xlsx`,
 `.pptx`. Anything else is ignored. Running the command twice is safe:
 files already processed are skipped automatically.
 
-After a successful run, all parsed `.md` files land in a
-`parsed_outputs/` folder inside the directory you scanned, and any
-figures land in `parsed_outputs/assets/` with relative links — so
-Obsidian (or any markdown renderer) shows the images inline.
+After a successful run, parsed `.md` files land in a `parsed_outputs/`
+subfolder inside the directory you scanned, and any figures land in
+`parsed_outputs/assets/` with relative links — so Obsidian (or any
+markdown renderer) shows the images inline.
 
 ## Use it from Claude Code
 
@@ -60,18 +72,18 @@ Install the included slash command globally so it works from any project:
 
 ```bash
 mkdir -p ~/.claude/commands
-curl -fsSL https://raw.githubusercontent.com/j1ngg/captures-to-md/main/.claude/commands/ingest-wiki.md \
-  -o ~/.claude/commands/ingest-wiki.md
+curl -fsSL https://raw.githubusercontent.com/j1ngg/captures-to-md/main/.claude/commands/parse-folder.md \
+  -o ~/.claude/commands/parse-folder.md
 ```
 
 Then in any Claude Code session:
 
 ```
-/ingest-wiki /path/to/your/wiki/inbox
+/parse-folder /path/to/your/folder
 ```
 
-Claude runs the scan, reports what was processed, and lists the new `.md`
-files — so you can summarize or query them in the same session.
+Claude runs the scan, reports what was processed, and lists the new
+`.md` files — so you can summarize or query them in the same session.
 
 ## Automate it
 
@@ -85,11 +97,11 @@ Scan every 6 hours in the background, no process to manage:
 crontab -e
 ```
 
-Add these two lines, substituting your API key and wiki path:
+Add these two lines, substituting your API key and folder path:
 
 ```
 EXTEND_API_KEY=sk-...
-0 */6 * * * $HOME/.local/bin/captures-to-md scan "/path/to/your/wiki/inbox" >> $HOME/Library/Logs/captures-to-md.log 2>&1
+0 */6 * * * $HOME/.local/bin/captures-to-md scan "/path/to/your/folder" >> $HOME/Library/Logs/captures-to-md.log 2>&1
 ```
 
 The first line sets the API key (cron doesn't inherit your shell's
@@ -101,10 +113,10 @@ If `$HOME/.local/bin/captures-to-md` doesn't exist on your system, run
 Cron is the right choice here: unlike macOS launchd, it doesn't clutter
 System Settings → Login Items with a background agent.
 
-**macOS gotcha:** if your wiki lives in `~/Documents`, `~/Desktop`, or
+**macOS gotcha:** if your folder lives in `~/Documents`, `~/Desktop`, or
 iCloud Drive, grant Full Disk Access to `/usr/sbin/cron` once in
-System Settings → Privacy & Security → Full Disk Access. Wikis stored
-elsewhere (e.g., `~/Code/`) don't need this.
+System Settings → Privacy & Security → Full Disk Access. Folders
+stored elsewhere (e.g., `~/Code/`) don't need this.
 
 ### Real-time mode
 
@@ -112,7 +124,7 @@ If you want files ingested within seconds of dropping them rather than
 at the next cron tick:
 
 ```bash
-captures-to-md watch /path/to/your/wiki/inbox
+captures-to-md watch /path/to/your/folder
 ```
 
 Listens for filesystem events and processes each file as it arrives.
