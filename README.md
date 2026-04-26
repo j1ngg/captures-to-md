@@ -8,20 +8,27 @@ ready for Claude, Obsidian, or any tool that reads markdown.
 
 ## Why this exists
 
-LLMs read markdown well. They read PDFs, decks, and images poorly:
-each page costs ~2,000+ tokens (rendered as an image) on every query,
-the structure they recover varies between runs, and embedded figures
-have no stable path you can reference from elsewhere.
+Markdown is a first-class citizen for AI agents. They read it as text,
+link to it, write it back, reason over it natively. Anything else —
+PDFs, decks, screenshots — is second-class: parsed from images on every
+read, with structure that shifts between runs and no stable handle the
+agent can quote later.
 
-If you want documents to live alongside your notes and stay cheap to
-query, you want markdown. `captures-to-md` does the conversion once —
-drop a file in the folder, get a parsed `.md` with figures extracted to
-stable filenames in `parsed_outputs/assets/`. From then on, anything
-that reads markdown (Claude Code, `grep`, Obsidian, your own scripts)
-can read your sources directly.
+`captures-to-md` does the conversion once so unstructured files can
+join the cognitive substrate your notes already live in:
+
+- **Available for connection.** A parsed `.md` has actual text that
+  wikilinks, embeds, and concept pages can quote and anchor in — so a
+  passage from a PDF can be cross-referenced from anywhere in your
+  notes the way a paragraph you typed yourself can be.
+- **Eligible for synthesis.** YAML frontmatter (tags, status, dates)
+  lets parsed sources participate in Karpathy-style synthesis
+  workflows — queryable, filterable, indexable alongside your own notes
+  rather than sitting outside the graph.
 
 For a one-shot read, just open the PDF — this is overkill. The value
-compounds when you cross-reference many sources over time.
+compounds when many sources need to live alongside your notes,
+addressable by reference and durable across agent sessions.
 
 ## Install
 
